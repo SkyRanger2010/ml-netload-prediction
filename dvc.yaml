@@ -1,0 +1,31 @@
+stages:
+  prepare:
+    cmd: python src/data/prepare.py --config configs/base.yaml
+    deps:
+      - src/data/prepare.py
+      - configs/base.yaml
+      - data/raw/network_load.csv
+    outs:
+      - data/processed/clean_network_load.csv
+
+  features:
+    cmd: python src/features/build_features.py --config configs/base.yaml
+    deps:
+      - src/features/build_features.py
+      - configs/base.yaml
+      - data/processed/clean_network_load.csv
+    outs:
+      - data/processed/network_load_features.csv
+
+  train:
+    cmd: python src/models/train.py --config configs/base.yaml
+    deps:
+      - src/models/train.py
+      - src/features/build_features.py
+      - configs/base.yaml
+      - data/processed/network_load_features.csv
+    outs:
+      - models/latest_model.joblib
+      - models/model_metadata.json
+    metrics:
+      - models/metrics.json

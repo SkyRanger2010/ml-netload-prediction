@@ -1,0 +1,39 @@
+project:
+  name: network-load-forecasting
+  version: 0.2.0
+
+data:
+  raw_path: data/raw/network_load.csv
+  processed_dir: data/processed
+  processed_filename: clean_network_load.csv
+
+features:
+  output_path: data/processed/network_load_features.csv
+
+model:
+  target_columns:
+    - incoming_gbps
+    - outgoing_gbps
+  test_size: 0.2
+  params:
+    n_estimators: 300
+    max_depth: 12
+    min_samples_split: 4
+    min_samples_leaf: 2
+    random_state: 42
+
+artifacts:
+  model_path: models/latest_model.joblib
+  metadata_path: models/model_metadata.json
+  metrics_path: models/metrics.json
+
+monitoring:
+  prediction_history: models/prediction_history.parquet
+
+mlflow:
+  enabled: false
+  tracking_uri: null
+  experiment_name: network-load-forecasting
+
+api:
+  default_timezone: UTC
