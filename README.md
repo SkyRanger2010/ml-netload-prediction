@@ -84,26 +84,66 @@ Prometheus + Grafana\
 
 ### 1. Установка зависимостей
 
-    pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt
 
-### 2. Подготовка данных
+### 2. Обновление конфигурации
 
-    dvc pull
-    python src/data/prepare.py
+Все ключевые пути и гиперпараметры задаются в `configs/base.yaml`. При
+необходимости создайте отдельный конфиг и передавайте его через `--config`.
 
-### 3. Обучение модели
+### 3. Подготовка данных и генерация признаков
 
-    python src/models/train.py
+    python3 src/data/prepare.py --config configs/base.yaml
+    python3 src/features/build_features.py --config configs/base.yaml
 
-### 4. Запуск API сервиса
+### 4. Обучение модели
 
-    uvicorn api.app:app --reload
+    python3 src/models/train.py --config configs/base.yaml
+
+Скрипт создаст артефакты в каталоге `models/` и сохранит метрики обучения.
+
+### 5. Тесты
+
+    python3 -m pytest -q
+
+### 6. Запуск API сервиса
+
+    uvicorn api.app:app --host 0.0.0.0 --port 8000
+
+### 7. Docker (опционально)
+
+    docker build -t network-load-api -f docker/Dockerfile .
+    docker run -p 8000:8000 network-load-api
+
+### 8. DVC пайплайн
+
+    dvc repro train
 
 ## **API**
 
 ### **POST /predict**
 
-Принимает признаки узла --- возвращает прогноз нагрузки.
+Принимает временную метку и возвращает ожидаемую входящую/исходящую нагрузку.
+
+Пример запроса:
+
+```
+POST /predict
+{
+  "date": "2025-01-10T00:00:00Z"
+}
+```
+
+Ответ:
+
+```
+{
+  "requested_date": "2025-01-10T00:00:00Z",
+  "incoming_gbps": 4.12,
+  "outgoing_gbps": 2.45,
+  "model_version": "0.2.0"
+}
+```
 
 Документация доступна по адресу:
 
